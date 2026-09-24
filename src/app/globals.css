@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ink: #0d0c0a;
+  --color-soot: #171613;
+  --color-bone: #ebe5d8;
+  --color-ash: #8d877a;
+  --color-brass: #b48a52;
+  --color-brass-soft: #d8bd8c;
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
+  --font-body: var(--font-manrope), "Manrope", sans-serif;
+  --font-sans: var(--font-manrope), "Manrope", sans-serif;
+
+  --ease-quiet: cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-marquee: marquee 42s linear infinite;
+  --animate-scroll-line: scroll-line 2.4s var(--ease-quiet) infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @keyframes scroll-line {
+    0% {
+      transform: scaleY(0);
+      transform-origin: top;
+    }
+    45% {
+      transform: scaleY(1);
+      transform-origin: top;
+    }
+    55% {
+      transform: scaleY(1);
+      transform-origin: bottom;
+    }
+    100% {
+      transform: scaleY(0);
+      transform-origin: bottom;
+    }
+  }
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--color-ink);
+    color: var(--color-bone);
+    font-family: var(--font-body);
+    font-weight: 300;
+    font-size: 1rem;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  ::selection {
+    background: var(--color-brass);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 1px solid var(--color-brass-soft);
+    outline-offset: 4px;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-display);
+    font-weight: 300;
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+
+  /* custom cursor takes over on precise pointers only, once mounted */
+  @media (hover: hover) and (pointer: fine) {
+    html.has-cursor,
+    html.has-cursor a,
+    html.has-cursor button,
+    html.has-cursor select,
+    html.has-cursor label {
+      cursor: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@utility label {
+  font-family: var(--font-body);
+  font-size: 0.65rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-ash);
+}
+
+@utility hairline {
+  border-color: color-mix(in oklab, var(--color-brass) 28%, transparent);
+}
+
+@utility hairline-bone {
+  border-color: color-mix(in oklab, var(--color-bone) 12%, transparent);
+}
+
+@utility brass-underline {
+  position: relative;
+  text-decoration: none;
+}
+
+@utility brass-underline-line {
+  position: absolute;
+  left: 0;
+  bottom: -0.15em;
+  height: 1px;
+  width: 100%;
+  background: var(--color-brass);
+  transform-origin: left;
+  transform: scaleX(1);
+  transition: transform 0.7s var(--ease-quiet);
+}
+
+@utility link-line {
+  position: relative;
+  display: inline-block;
+}
+
+@utility link-line-after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  height: 1px;
+  width: 100%;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: right;
+  transition: transform 0.6s var(--ease-quiet);
+}
+
+.link-line::after {
+  @apply link-line-after;
+}
+
+.link-line:hover::after,
+.link-line:focus-visible::after {
+  transform: scaleX(1);
+  transform-origin: left;
+}
+
+.wrap {
+  width: 100%;
+  max-width: 96rem;
+  margin-inline: auto;
+  padding-inline: clamp(1.25rem, 4vw, 4rem);
+}
+
+.field {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid color-mix(in oklab, var(--color-bone) 18%, transparent);
+  padding: 0.9rem 0;
+  color: var(--color-bone);
+  font-family: var(--font-body);
+  font-weight: 300;
+  font-size: 1rem;
+  transition: border-color 0.5s var(--ease-quiet);
+  border-radius: 0;
+  appearance: none;
+}
+
+.field::placeholder {
+  color: color-mix(in oklab, var(--color-ash) 70%, transparent);
+}
+
+.field:focus {
+  outline: none;
+  border-bottom-color: var(--color-brass);
+}
+
+.field[aria-invalid="true"] {
+  border-bottom-color: #b1553e;
+}
+
+select.field option {
+  background: var(--color-soot);
+  color: var(--color-bone);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.05;
+  mix-blend-mode: screen;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 240px 240px;
+}
+
