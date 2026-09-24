@@ -1,7 +1,8 @@
 "use client";
 
 import { createContext, useContext, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { formatPrice, whatsappNumber, type Product } from "@/lib/data";
+import { formatPrice, whatsappNumber } from "@/lib/data";
+import { useLanguage } from "@/lib/i18n";
 
 export type CartLine = {
   slug: string;
@@ -9,6 +10,8 @@ export type CartLine = {
   price: number;
   qty: number;
 };
+
+type CartItem = { slug: string; title: string; price: number };
 
 const STORAGE_KEY = "medusa-cart-v1";
 const EMPTY: CartLine[] = [];
@@ -57,11 +60,11 @@ function getServerSnapshot() {
   return EMPTY;
 }
 
-function storeAdd(product: Product, qty: number) {
-  const existing = lines.find((l) => l.slug === product.slug);
+function storeAdd(item: CartItem, qty: number) {
+  const existing = lines.find((l) => l.slug === item.slug);
   lines = existing
-    ? lines.map((l) => (l.slug === product.slug ? { ...l, qty: l.qty + qty } : l))
-    : [...lines, { slug: product.slug, title: product.title, price: product.price, qty }];
+    ? lines.map((l) => (l.slug === item.slug ? { ...l, qty: l.qty + qty } : l))
+    : [...lines, { slug: item.slug, title: item.title, price: item.price, qty }];
   emit();
 }
 
@@ -83,7 +86,7 @@ type CartContextValue = {
   isOpen: boolean;
   open: () => void;
   close: () => void;
-  add: (product: Product, qty?: number) => void;
+  add: (item: CartItem, qty?: number) => void;
   remove: (slug: string) => void;
   setQty: (slug: string, qty: number) => void;
   checkoutHref: string;
@@ -94,6 +97,7 @@ const CartContext = createContext<CartContextValue | null>(null);
 export function CartProvider({ children }: { children: ReactNode }) {
   const currentLines = useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useLanguage();
 
   const value = useMemo<CartContextValue>(() => {
     const count = currentLines.reduce((n, l) => n + l.qty, 0);
@@ -101,8 +105,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     const items = currentLines.map((l) => `• ${l.title} x${l.qty} — ${formatPrice(l.price * l.qty, "TND")}`).join("\n");
     const message =
       currentLines.length === 0
-        ? "Hello MEDUSA, I'd like to place an order."
-        : `Hello MEDUSA, I'd like to order:\n\n${items}\n\nTotal: ${formatPrice(subtotal, "TND")}`;
+        ? t.cart.whatsappEmpty
+        : `${t.cart.whatsappIntro}\n\n${items}\n\n${t.cart.whatsappTotal}: ${formatPrice(subtotal, "TND")}`;
 
     return {
       lines: currentLines,
@@ -111,15 +115,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
       isOpen,
       open: () => setIsOpen(true),
       close: () => setIsOpen(false),
-      add: (product, qty = 1) => {
-        storeAdd(product, qty);
+      add: (item, qty = 1) => {
+        storeAdd(item, qty);
         setIsOpen(true);
       },
       remove: storeRemove,
       setQty: storeSetQty,
       checkoutHref: `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`,
     };
-  }, [currentLines, isOpen]);
+  }, [currentLines, isOpen, t]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }

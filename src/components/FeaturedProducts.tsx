@@ -1,8 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { products, selectedProductSlugs, formatPrice } from "@/lib/data";
 import { Composition } from "@/components/Composition";
 import { Reveal } from "@/components/Reveal";
+import { pick, useLanguage } from "@/lib/i18n";
 
 const layout = [
   "md:col-span-7 md:row-span-2 aspect-[4/5] md:aspect-auto",
@@ -13,6 +16,8 @@ const layout = [
 ];
 
 export function FeaturedProducts() {
+  const { t, locale } = useLanguage();
+  const { heading } = t.featured;
   const featured = selectedProductSlugs
     .map((s) => products.find((p) => p.slug === s))
     .filter((p): p is NonNullable<typeof p> => Boolean(p));
@@ -21,13 +26,13 @@ export function FeaturedProducts() {
     <section className="wrap pt-28 md:pt-40 pb-24" aria-labelledby="featured-heading">
       <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b hairline pb-8 mb-12">
         <div>
-          <p className="label mb-4">Featured pieces</p>
+          <p className="label mb-4">{t.featured.eyebrow}</p>
           <h2 id="featured-heading" className="text-[clamp(2.4rem,5.5vw,5.5rem)]">
-            Nine pieces, <em className="italic text-brass-soft">one</em> house
+            {heading.pre} <em className="italic text-brass-soft">{heading.em}</em> {heading.post}
           </h2>
         </div>
         <Link href="/shop" className="label link-line text-bone self-start md:self-auto">
-          Shop all
+          {t.featured.shopAll}
         </Link>
       </Reveal>
 
@@ -37,7 +42,7 @@ export function FeaturedProducts() {
             <Link
               href={`/shop/${p.slug}`}
               className="group relative block h-full w-full overflow-hidden"
-              aria-label={`${p.title}, ${formatPrice(p.price, p.currency)}`}
+              aria-label={`${pick(p.title, locale)}, ${formatPrice(p.price, p.currency)}`}
             >
               <Composition
                 motif={p.motif}
@@ -48,18 +53,18 @@ export function FeaturedProducts() {
               <div className="absolute inset-x-0 bottom-0 p-6 md:p-8 flex items-end justify-between gap-4">
                 <div className="translate-y-3 opacity-80 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:translate-y-0 group-hover:opacity-100">
                   <p className="font-display text-3xl md:text-4xl font-light leading-none text-bone">
-                    {p.title}
+                    {pick(p.title, locale)}
                   </p>
                   <p className="label mt-3 opacity-0 transition-opacity duration-700 delay-100 group-hover:opacity-100">
-                    {formatPrice(p.price, p.currency)} · {p.category}
+                    {formatPrice(p.price, p.currency)} · {t.categories[p.category]}
                   </p>
                 </div>
                 <ArrowUpRight
-                  className="h-5 w-5 text-brass-soft opacity-0 -translate-x-2 translate-y-2 transition-all duration-700 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0"
+                  className="h-5 w-5 text-brass-soft opacity-0 -translate-x-2 translate-y-2 transition-all duration-700 group-hover:opacity-100 group-hover:translate-x-0 group-hover:translate-y-0 rtl:group-hover:translate-x-2"
                   aria-hidden="true"
                 />
               </div>
-              <span className="absolute top-5 left-6 md:left-8 label text-bone/70">
+              <span className="absolute top-5 start-6 md:start-8 label text-bone/70">
                 {String(i + 1).padStart(2, "0")}
               </span>
             </Link>

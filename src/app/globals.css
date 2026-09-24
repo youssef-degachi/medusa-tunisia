@@ -11,6 +11,7 @@
   --font-display: var(--font-cormorant), "Cormorant Garamond", Georgia, serif;
   --font-body: var(--font-manrope), "Manrope", sans-serif;
   --font-sans: var(--font-manrope), "Manrope", sans-serif;
+  --font-arabic: var(--font-cairo), "Cairo", sans-serif;
 
   --ease-quiet: cubic-bezier(0.22, 1, 0.36, 1);
   --animate-marquee: marquee 42s linear infinite;
@@ -80,6 +81,21 @@
     font-weight: 300;
     letter-spacing: -0.02em;
     line-height: 1;
+  }
+
+  html[dir="rtl"] {
+    --font-display: var(--font-arabic);
+    --font-body: var(--font-arabic);
+  }
+
+  html[dir="rtl"] h1,
+  html[dir="rtl"] h2,
+  html[dir="rtl"] h3 {
+    letter-spacing: 0;
+  }
+
+  html[dir="rtl"] em {
+    font-style: normal;
   }
 
   /* custom cursor takes over on precise pointers only, once mounted */

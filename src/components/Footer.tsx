@@ -1,41 +1,58 @@
-import Link from "next/link";
-import { addresses, navLinks } from "@/lib/data";
+"use client";
 
-const socials = ["Instagram", "TikTok", "WhatsApp", "Facebook"];
+import Link from "next/link";
+import {
+  addressCity,
+  email,
+  instagramUrl,
+  navLinks,
+  phoneDisplay,
+  temuCode,
+  temuUrl,
+  whatsappNumber,
+  youtubeUrl,
+} from "@/lib/data";
+import { pick, useLanguage } from "@/lib/i18n";
 
 export function Footer() {
+  const { t, locale } = useLanguage();
+
+  const elsewhere = [
+    { label: t.footer.instagram, href: instagramUrl },
+    { label: t.footer.whatsapp, href: `https://wa.me/${whatsappNumber}` },
+    { label: t.footer.youtube, href: youtubeUrl },
+    { label: `${t.footer.temu} (${temuCode})`, href: temuUrl },
+  ];
+
   return (
     <footer className="relative border-t hairline bg-soot mt-auto overflow-hidden">
       <div className="wrap pt-20 pb-10">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 md:gap-8">
-          <div className="md:col-span-5 grid grid-cols-2 gap-8">
-            {addresses.map((a) => (
-              <address key={a.city} className="not-italic text-sm leading-7 text-ash">
-                <p className="label text-brass mb-4">{a.city}</p>
-                {a.lines.map((l) => (
-                  <p key={l}>{l}</p>
-                ))}
-                <p className="mt-3">
-                  <a href={`mailto:${a.email}`} className="link-line text-bone">
-                    {a.email}
-                  </a>
-                </p>
-              </address>
-            ))}
+          <div className="md:col-span-5">
+            <address className="not-italic text-sm leading-7 text-ash">
+              <p className="label text-brass mb-4">{pick(addressCity, locale)}</p>
+              <p>{phoneDisplay}</p>
+              <p className="mt-1">{t.contact.hoursValue}</p>
+              <p className="mt-3">
+                <a href={`mailto:${email}`} className="link-line text-bone">
+                  {email}
+                </a>
+              </p>
+            </address>
           </div>
 
           <div className="md:col-span-3">
-            <p className="label text-brass mb-4">Sitemap</p>
+            <p className="label text-brass mb-4">{t.footer.sitemap}</p>
             <ul className="text-sm leading-8">
               <li>
                 <Link href="/" className="link-line text-ash hover:text-bone transition-colors">
-                  Home
+                  {t.nav.home}
                 </Link>
               </li>
               {navLinks.map((l) => (
                 <li key={l.href}>
                   <Link href={l.href} className="link-line text-ash hover:text-bone transition-colors">
-                    {l.label}
+                    {t.nav[l.key]}
                   </Link>
                 </li>
               ))}
@@ -43,12 +60,12 @@ export function Footer() {
           </div>
 
           <div className="md:col-span-4">
-            <p className="label text-brass mb-4">Elsewhere</p>
+            <p className="label text-brass mb-4">{t.footer.elsewhere}</p>
             <ul className="text-sm leading-8">
-              {socials.map((s) => (
-                <li key={s}>
-                  <a href="#" className="link-line text-ash hover:text-bone transition-colors">
-                    {s}
+              {elsewhere.map((s) => (
+                <li key={s.label}>
+                  <a href={s.href} target="_blank" rel="noopener noreferrer" className="link-line text-ash hover:text-bone transition-colors">
+                    {s.label}
                   </a>
                 </li>
               ))}
@@ -64,10 +81,9 @@ export function Footer() {
         </p>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t hairline pt-6 mt-4">
-          <p className="label">© 2026 MEDUSA</p>
+          <p className="label">{t.footer.rights}</p>
           <p className="label flex gap-6">
-            <Link href="/care" className="link-line">Care &amp; shipping</Link>
-            <span>Tunis · Djerba</span>
+            <Link href="/care" className="link-line">{t.footer.careShipping}</Link>
           </p>
         </div>
       </div>

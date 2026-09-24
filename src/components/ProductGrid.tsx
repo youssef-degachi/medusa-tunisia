@@ -3,13 +3,15 @@
 import Link from "next/link";
 import { useState } from "react";
 import { AnimatePresence, LayoutGroup, motion } from "motion/react";
-import { products, categories, formatPrice } from "@/lib/data";
+import { products, categoryKeys, formatPrice } from "@/lib/data";
 import { Composition } from "@/components/Composition";
+import { pick, useLanguage } from "@/lib/i18n";
 
 const ease = [0.22, 1, 0.36, 1] as const;
 
 export function ProductGrid() {
-  const [filter, setFilter] = useState<(typeof categories)[number]>("All");
+  const { t, locale } = useLanguage();
+  const [filter, setFilter] = useState<(typeof categoryKeys)[number]>("All");
   const visible = filter === "All" ? products : products.filter((p) => p.category === filter);
 
   return (
@@ -19,9 +21,10 @@ export function ProductGrid() {
         aria-label="Filter products by category"
         className="flex flex-wrap gap-x-8 gap-y-3 border-y hairline py-5 mb-12"
       >
-        {categories.map((c) => {
+        {categoryKeys.map((c) => {
           const active = c === filter;
           const count = c === "All" ? products.length : products.filter((p) => p.category === c).length;
+          const label = c === "All" ? t.categories.all : t.categories[c];
           return (
             <button
               key={c}
@@ -33,8 +36,8 @@ export function ProductGrid() {
                 active ? "text-bone" : "hover:text-bone/80"
               }`}
             >
-              {c}
-              <sup className="ml-1.5 text-[0.55rem] text-brass">{count}</sup>
+              {label}
+              <sup className="ms-1.5 text-[0.55rem] text-brass">{count}</sup>
               {active && (
                 <motion.span
                   layoutId="filter-underline"
@@ -67,21 +70,21 @@ export function ProductGrid() {
                       tones={p.tones}
                       className="absolute inset-0 transition-transform duration-[1400ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
                     />
-                    <span className="absolute top-4 left-5 label text-bone/70">
+                    <span className="absolute top-4 start-5 label text-bone/70">
                       {String(products.indexOf(p) + 1).padStart(2, "0")}
                     </span>
-                    <span className="absolute top-4 right-5 label text-brass-soft">{formatPrice(p.price, p.currency)}</span>
+                    <span className="absolute top-4 end-5 label text-brass-soft">{formatPrice(p.price, p.currency)}</span>
                     {p.availability !== "In stock" && (
-                      <span className="absolute bottom-4 left-5 label bg-ink/70 backdrop-blur-sm px-2 py-1 text-bone">
-                        {p.availability}
+                      <span className="absolute bottom-4 start-5 label bg-ink/70 backdrop-blur-sm px-2 py-1 text-bone">
+                        {t.availability[p.availability]}
                       </span>
                     )}
                   </div>
                   <div className="flex items-baseline justify-between gap-4 border-b hairline-bone pt-5 pb-4 transition-colors duration-500 group-hover:border-brass/50">
-                    <h2 className="font-display text-3xl font-light leading-none">{p.title}</h2>
-                    <span className="label shrink-0">{p.category}</span>
+                    <h2 className="font-display text-3xl font-light leading-none">{pick(p.title, locale)}</h2>
+                    <span className="label shrink-0">{t.categories[p.category]}</span>
                   </div>
-                  <p className="mt-3 text-sm text-ash">{p.material}</p>
+                  <p className="mt-3 text-sm text-ash">{pick(p.material, locale)}</p>
                 </Link>
               </motion.li>
             ))}
@@ -90,7 +93,7 @@ export function ProductGrid() {
       </LayoutGroup>
 
       <p className="label mt-16" aria-live="polite">
-        Showing {visible.length} of {products.length}
+        {t.shop.showing.replace("{shown}", String(visible.length)).replace("{total}", String(products.length))}
       </p>
     </div>
   );

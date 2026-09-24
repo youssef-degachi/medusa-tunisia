@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import { ArrowUpRight } from "lucide-react";
+import { useLanguage } from "@/lib/i18n";
 
 type Values = {
   name: string;
@@ -15,22 +16,22 @@ type Errors = Partial<Record<keyof Values, string>>;
 
 const initial: Values = { name: "", email: "", reason: "", message: "" };
 
-const reasons = ["Order help", "Wholesale & stockists", "Custom / bespoke piece", "Press & collaborations", "Something else"];
-
-function validate(v: Values): Errors {
-  const e: Errors = {};
-  if (v.name.trim().length < 2) e.name = "Please tell us your name.";
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email.trim())) e.email = "That email doesn't look right.";
-  if (!v.reason) e.reason = "Choose the closest fit.";
-  if (v.message.trim().length < 10) e.message = "A few sentences helps us understand what you need.";
-  return e;
-}
-
 export function ContactForm() {
+  const { t } = useLanguage();
+  const f = t.contact.form;
   const [values, setValues] = useState<Values>(initial);
   const [errors, setErrors] = useState<Errors>({});
   const [touched, setTouched] = useState<Partial<Record<keyof Values, boolean>>>({});
   const [sent, setSent] = useState(false);
+
+  function validate(v: Values): Errors {
+    const e: Errors = {};
+    if (v.name.trim().length < 2) e.name = f.errors.name;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v.email.trim())) e.email = f.errors.email;
+    if (!v.reason) e.reason = f.errors.reason;
+    if (v.message.trim().length < 10) e.message = f.errors.message;
+    return e;
+  }
 
   const set = (k: keyof Values) => (ev: { target: { value: string } }) => {
     const next = { ...values, [k]: ev.target.value };
@@ -66,15 +67,11 @@ export function ContactForm() {
             className="border-t hairline pt-10"
             role="status"
           >
-            <p className="label text-brass mb-6">Received</p>
+            <p className="label text-brass mb-6">{f.sentEyebrow}</p>
             <h2 className="text-[clamp(2.4rem,5vw,4.5rem)] leading-[0.98]">
-              Thank you, <em className="italic text-brass-soft">{values.name.trim().split(" ")[0]}</em>.
+              {f.sentHeadingPre} <em className="italic text-brass-soft">{values.name.trim().split(" ")[0]}</em>.
             </h2>
-            <p className="mt-8 max-w-md text-ash leading-8">
-              We read every message ourselves and reply within a couple of
-              days. For anything urgent about an order, WhatsApp is faster —
-              use the number in the footer.
-            </p>
+            <p className="mt-8 max-w-md text-ash leading-8">{f.sentBody}</p>
             <button
               type="button"
               onClick={() => {
@@ -85,7 +82,7 @@ export function ContactForm() {
               }}
               className="label link-line text-bone mt-12"
             >
-              Send another
+              {f.sendAnother}
             </button>
           </motion.div>
         ) : (
@@ -97,12 +94,12 @@ export function ContactForm() {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-10"
           >
-            <Field label="Name" error={err("name")} htmlFor="name">
+            <Field label={f.name} error={err("name")} htmlFor="name">
               <input
                 id="name"
                 name="name"
                 className="field"
-                placeholder="Your full name"
+                placeholder={f.namePlaceholder}
                 autoComplete="name"
                 value={values.name}
                 onChange={set("name")}
@@ -111,13 +108,13 @@ export function ContactForm() {
                 aria-describedby={err("name") ? "name-error" : undefined}
               />
             </Field>
-            <Field label="Email" error={err("email")} htmlFor="email">
+            <Field label={f.email} error={err("email")} htmlFor="email">
               <input
                 id="email"
                 name="email"
                 type="email"
                 className="field"
-                placeholder="you@example.com"
+                placeholder={f.emailPlaceholder}
                 autoComplete="email"
                 value={values.email}
                 onChange={set("email")}
@@ -126,7 +123,7 @@ export function ContactForm() {
                 aria-describedby={err("email") ? "email-error" : undefined}
               />
             </Field>
-            <Field label="How can we help?" error={err("reason")} htmlFor="reason" className="md:col-span-2">
+            <Field label={f.reasonLabel} error={err("reason")} htmlFor="reason" className="md:col-span-2">
               <select
                 id="reason"
                 name="reason"
@@ -137,21 +134,21 @@ export function ContactForm() {
                 aria-invalid={Boolean(err("reason"))}
                 aria-describedby={err("reason") ? "reason-error" : undefined}
               >
-                <option value="">Select a reason</option>
-                {reasons.map((r) => (
+                <option value="">{f.reasonPlaceholder}</option>
+                {f.reasons.map((r) => (
                   <option key={r} value={r}>
                     {r}
                   </option>
                 ))}
               </select>
             </Field>
-            <Field label="Message" error={err("message")} htmlFor="message" className="md:col-span-2">
+            <Field label={f.messageLabel} error={err("message")} htmlFor="message" className="md:col-span-2">
               <textarea
                 id="message"
                 name="message"
                 rows={5}
                 className="field resize-none"
-                placeholder="Order number, piece you're after, or anything else we should know."
+                placeholder={f.messagePlaceholder}
                 value={values.message}
                 onChange={set("message")}
                 onBlur={blur("message")}
@@ -160,15 +157,13 @@ export function ContactForm() {
               />
             </Field>
             <div className="md:col-span-2 flex flex-col sm:flex-row sm:items-center justify-between gap-6 pt-2">
-              <p className="text-xs text-ash max-w-sm leading-6">
-                We reply within a couple of days. Nothing you write here is shared beyond the atelier.
-              </p>
+              <p className="text-xs text-ash max-w-sm leading-6">{f.privacy}</p>
               <button
                 type="submit"
                 className="group inline-flex items-center gap-3 border border-brass px-7 py-4 label text-bone transition-colors duration-500 hover:bg-brass hover:text-ink"
               >
-                Send message
-                <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
+                {f.submit}
+                <ArrowUpRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 rtl:group-hover:-translate-x-0.5" aria-hidden="true" />
               </button>
             </div>
           </motion.form>
